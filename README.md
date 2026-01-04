@@ -58,7 +58,7 @@ A professional-grade stock analysis and portfolio tracking application for India
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/AquibPy/Stonks.git
+git clone https://github.com/kshitij-garg/Stonks.git
 cd Stonks
 ```
 
