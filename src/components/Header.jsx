@@ -1,4 +1,4 @@
-import { TrendingUp, LayoutDashboard, Filter, Target, LineChart, Eye, Briefcase, GitCompare, RefreshCw, Calendar, Activity, BarChart2 } from 'lucide-react';
+import { TrendingUp, LayoutDashboard, Filter, Target, LineChart, Eye, Briefcase, GitCompare, RefreshCw, Calendar, Activity, BarChart2, Bell, Coins, FileText } from 'lucide-react';
 
 function Header({ activeTab, setActiveTab, timeframe, setTimeframe, onRefresh }) {
     const mainTabs = [
@@ -11,6 +11,9 @@ function Header({ activeTab, setActiveTab, timeframe, setTimeframe, onRefresh })
         { id: 'watchlist', label: 'Watchlist', icon: Eye },
         { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
         { id: 'compare', label: 'Compare', icon: GitCompare },
+        { id: 'commodities', label: 'Commodities', icon: Coins },
+        { id: 'alerts', label: 'Alerts', icon: Bell },
+        { id: 'fundamentals', label: 'Fundamentals', icon: FileText },
         { id: 'backtesting', label: 'Backtest', icon: LineChart },
     ];
 
@@ -23,7 +26,7 @@ function Header({ activeTab, setActiveTab, timeframe, setTimeframe, onRefresh })
                 </div>
                 <div>
                     <h1>India Stock Analyzer</h1>
-                    <p>135+ Stocks • NIFTY 50 + Next 50 + Midcap 50</p>
+                    <p>135+ Stocks • Gold • Silver • Crude Oil</p>
                 </div>
             </div>
 

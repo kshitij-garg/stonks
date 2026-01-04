@@ -360,6 +360,106 @@ def remove_from_portfolio():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@api_bp.route('/portfolio/import', methods=['POST'])
+def import_portfolio():
+    """Import holdings from CSV/Excel file (Zerodha, Groww, etc.)"""
+    try:
+        from services.csv_import import detect_broker_and_parse
+        from services.portfolio import add_holding, get_holdings
+        
+        if 'file' not in request.files:
+            return jsonify({"success": False, "error": "No file uploaded"}), 400
+        
+        file = request.files['file']
+        if not file.filename:
+            return jsonify({"success": False, "error": "No file selected"}), 400
+        
+        # Read file content
+        file_content = file.read()
+        filename = file.filename.lower()
+        
+        # Parse the file
+        holdings, errors, broker = detect_broker_and_parse(file_content, filename)
+        
+        if not holdings:
+            return jsonify({
+                "success": False, 
+                "error": "No valid holdings found",
+                "parse_errors": errors
+            }), 400
+        
+        # Add holdings to portfolio
+        added = 0
+        import_errors = []
+        
+        for h in holdings:
+            try:
+                success = add_holding(
+                    h['symbol'], 
+                    h['quantity'], 
+                    h['avg_price']
+                )
+                if success:
+                    added += 1
+            except Exception as e:
+                import_errors.append(f"{h['symbol']}: {str(e)}")
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "broker_detected": broker,
+                "total_parsed": len(holdings),
+                "added": added,
+                "holdings": holdings
+            },
+            "parse_errors": errors,
+            "import_errors": import_errors
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/portfolio/clear', methods=['POST'])
+def clear_portfolio():
+    """Clear all holdings from portfolio"""
+    try:
+        from services.portfolio import get_holdings, remove_holding
+        
+        holdings = get_holdings()
+        for h in holdings:
+            remove_holding(h['symbol'])
+        
+        return jsonify({"success": True, "removed": len(holdings)})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/portfolio/analytics', methods=['GET'])
+def get_portfolio_analytics_route():
+    """Get comprehensive portfolio analytics with upside/downside predictions"""
+    try:
+        from services.portfolio import get_portfolio_analytics, get_holdings
+        
+        # Get all scored stocks with recommendations
+        timeframe = request.args.get('timeframe', 'weekly')
+        period_config = PERIOD_MAP.get(timeframe, PERIOD_MAP['weekly'])
+        
+        all_stocks = get_all_scored_stocks(
+            period=period_config['period'],
+            interval=period_config['interval'],
+            timeframe=timeframe
+        )
+        
+        # Convert to dict keyed by symbol
+        stock_data = {s['symbol']: s for s in all_stocks}
+        
+        analytics = get_portfolio_analytics(stock_data)
+        return jsonify({"success": True, "data": analytics})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # Backtesting Endpoints
 @api_bp.route('/backtest', methods=['GET'])
 def get_backtest_results():
@@ -399,3 +499,236 @@ def save_snapshot():
 
 # Import pandas for type checking
 import pandas as pd
+
+
+# ===========================================
+# COMMODITIES ENDPOINTS
+# ===========================================
+
+@api_bp.route('/commodities', methods=['GET'])
+def get_commodities():
+    """Get all commodity prices (Gold, Silver, Crude Oil)"""
+    try:
+        from services.commodities import get_all_commodities
+        data = get_all_commodities()
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/commodity/<symbol>', methods=['GET'])
+def get_commodity(symbol: str):
+    """Get single commodity with chart data"""
+    try:
+        from services.commodities import fetch_commodity_data
+        period = request.args.get('period', '6mo')
+        data = fetch_commodity_data(symbol.upper(), period)
+        if not data:
+            return jsonify({"success": False, "error": "Commodity not found"}), 404
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/market-summary', methods=['GET'])
+def get_market_summary():
+    """Get complete market summary (indices + commodities + currency)"""
+    try:
+        from services.commodities import get_market_summary
+        data = get_market_summary()
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ===========================================
+# ALERTS ENDPOINTS
+# ===========================================
+
+@api_bp.route('/alerts', methods=['GET'])
+def get_alerts():
+    """Get all active price alerts"""
+    try:
+        from services.alerts import get_active_alerts
+        symbol = request.args.get('symbol')
+        alerts = get_active_alerts(symbol)
+        return jsonify({"success": True, "data": alerts})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/alerts/create', methods=['POST'])
+def create_alert():
+    """Create a new price alert"""
+    try:
+        from services.alerts import create_alert as create_new_alert
+        
+        data = request.json or {}
+        symbol = data.get('symbol', '').upper()
+        target_price = float(data.get('target_price', 0))
+        condition = data.get('condition', 'above')
+        notes = data.get('notes', '')
+        
+        if not symbol or target_price <= 0:
+            return jsonify({"success": False, "error": "Symbol and target_price required"}), 400
+        
+        alert_id = create_new_alert(symbol, target_price, condition, notes=notes)
+        return jsonify({"success": True, "alert_id": alert_id})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/alerts/<int:alert_id>/delete', methods=['POST'])
+def delete_alert_route(alert_id: int):
+    """Delete an alert"""
+    try:
+        from services.alerts import delete_alert
+        success = delete_alert(alert_id)
+        return jsonify({"success": success})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/alerts/check', methods=['POST'])
+def check_alerts_route():
+    """Check alerts against current prices"""
+    try:
+        from services.alerts import check_alerts, get_active_alerts
+        
+        # Get current prices for all symbols with alerts
+        alerts = get_active_alerts()
+        symbols = set(a['symbol'] for a in alerts)
+        
+        current_prices = {}
+        for symbol in symbols:
+            info = get_stock_info(symbol)
+            if info:
+                current_prices[symbol] = info.get('price', 0)
+        
+        triggered = check_alerts(current_prices)
+        return jsonify({"success": True, "triggered": triggered})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/alerts/history', methods=['GET'])
+def get_alert_history():
+    """Get history of triggered alerts"""
+    try:
+        from services.alerts import get_alert_history
+        limit = int(request.args.get('limit', 50))
+        history = get_alert_history(limit)
+        return jsonify({"success": True, "data": history})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ===========================================
+# FUNDAMENTALS ENDPOINTS
+# ===========================================
+
+@api_bp.route('/fundamentals/<symbol>', methods=['GET'])
+def get_fundamentals(symbol: str):
+    """Get comprehensive fundamental data"""
+    try:
+        from services.fundamentals import get_full_fundamentals
+        data = get_full_fundamentals(symbol.upper())
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/fundamentals/<symbol>/quarterly', methods=['GET'])
+def get_quarterly(symbol: str):
+    """Get quarterly results"""
+    try:
+        from services.fundamentals import get_quarterly_results
+        data = get_quarterly_results(symbol.upper())
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/fundamentals/<symbol>/balance-sheet', methods=['GET'])
+def get_balance_sheet_route(symbol: str):
+    """Get balance sheet"""
+    try:
+        from services.fundamentals import get_balance_sheet
+        data = get_balance_sheet(symbol.upper())
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/fundamentals/<symbol>/peers', methods=['GET'])
+def get_peers(symbol: str):
+    """Get peer comparison"""
+    try:
+        from services.fundamentals import get_peer_comparison
+        data = get_peer_comparison(symbol.upper())
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ===========================================
+# CHART DATA ENDPOINTS
+# ===========================================
+
+@api_bp.route('/chart/<symbol>', methods=['GET'])
+def get_chart_data(symbol: str):
+    """Get OHLC chart data for a stock"""
+    try:
+        period = request.args.get('period', '6mo')
+        interval = request.args.get('interval', '1d')
+        
+        df = get_stock_data(symbol.upper(), period=period, interval=interval)
+        if df is None:
+            return jsonify({"success": False, "error": "No data"}), 404
+        
+        # Calculate indicators for overlays
+        from services.indicators import calculate_all_indicators
+        df = calculate_all_indicators(df)
+        
+        chart_data = []
+        for _, row in df.iterrows():
+            point = {
+                "date": str(row.get('Date', '')),
+                "open": round(float(row['Open']), 2),
+                "high": round(float(row['High']), 2),
+                "low": round(float(row['Low']), 2),
+                "close": round(float(row['Close']), 2),
+                "volume": int(row['Volume']) if not pd.isna(row.get('Volume', 0)) else 0,
+            }
+            # Add indicators if available
+            if 'SMA_20' in row:
+                point['sma20'] = round(float(row['SMA_20']), 2) if not pd.isna(row['SMA_20']) else None
+            if 'SMA_50' in row:
+                point['sma50'] = round(float(row['SMA_50']), 2) if not pd.isna(row['SMA_50']) else None
+            if 'EMA_12' in row:
+                point['ema12'] = round(float(row['EMA_12']), 2) if not pd.isna(row['EMA_12']) else None
+            if 'BB_Upper' in row:
+                point['bb_upper'] = round(float(row['BB_Upper']), 2) if not pd.isna(row['BB_Upper']) else None
+            if 'BB_Lower' in row:
+                point['bb_lower'] = round(float(row['BB_Lower']), 2) if not pd.isna(row['BB_Lower']) else None
+            if 'RSI' in row:
+                point['rsi'] = round(float(row['RSI']), 2) if not pd.isna(row['RSI']) else None
+            if 'MACD' in row:
+                point['macd'] = round(float(row['MACD']), 4) if not pd.isna(row['MACD']) else None
+            if 'MACD_Signal' in row:
+                point['macd_signal'] = round(float(row['MACD_Signal']), 4) if not pd.isna(row['MACD_Signal']) else None
+            
+            chart_data.append(point)
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "symbol": symbol.upper(),
+                "period": period,
+                "interval": interval,
+                "candles": chart_data
+            }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+

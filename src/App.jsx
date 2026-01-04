@@ -13,7 +13,15 @@ import {
     fetchPortfolio,
     addToPortfolio,
     removeFromPortfolio,
-    fetchCompareStocks
+    importPortfolioCSV,
+    fetchCompareStocks,
+    fetchCommodities,
+    fetchAlerts,
+    fetchAlertHistory,
+    createAlert,
+    deleteAlert,
+    fetchFundamentals,
+    fetchChartData
 } from './api/stockApi';
 import Header from './components/Header';
 import MarketOverview from './components/MarketOverview';
@@ -26,6 +34,10 @@ import Backtesting from './components/Backtesting';
 import Watchlist from './components/Watchlist';
 import Portfolio from './components/Portfolio';
 import Compare from './components/Compare';
+import Commodities from './components/Commodities';
+import Alerts from './components/Alerts';
+import Fundamentals from './components/Fundamentals';
+import StockChart from './components/StockChart';
 import ProgressBar from './components/ProgressBar';
 
 function App() {
@@ -34,6 +46,7 @@ function App() {
     const [timeframe, setTimeframe] = useState('weekly');
     const [backtestDays, setBacktestDays] = useState(30);
     const [compareSymbols, setCompareSymbols] = useState([]);
+    const [fundamentalsSymbol, setFundamentalsSymbol] = useState('RELIANCE');
     const queryClient = useQueryClient();
 
     // Market Overview
@@ -58,6 +71,14 @@ function App() {
         queryKey: ['sectors'],
         queryFn: fetchSectors,
         staleTime: 1000 * 60 * 10,
+        retry: 1
+    });
+
+    // Commodities (Gold, Silver, Crude Oil)
+    const { data: commoditiesData, isLoading: commoditiesLoading, error: commoditiesError } = useQuery({
+        queryKey: ['commodities'],
+        queryFn: fetchCommodities,
+        staleTime: 1000 * 60 * 5,
         retry: 1
     });
 
@@ -125,11 +146,52 @@ function App() {
     });
 
     // Compare
-    const { data: compareData, isLoading: compareLoading, error: compareError, refetch: refetchCompare } = useQuery({
+    const { data: compareData, isLoading: compareLoading, error: compareError } = useQuery({
         queryKey: ['compare', compareSymbols],
         queryFn: () => fetchCompareStocks(compareSymbols),
         staleTime: 1000 * 60 * 5,
         enabled: activeTab === 'compare' && compareSymbols.length > 0
+    });
+
+    // Alerts
+    const { data: alertsData, isLoading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useQuery({
+        queryKey: ['alerts'],
+        queryFn: fetchAlerts,
+        staleTime: 1000 * 60 * 1,
+        enabled: activeTab === 'alerts'
+    });
+
+    const { data: alertHistoryData } = useQuery({
+        queryKey: ['alert-history'],
+        queryFn: () => fetchAlertHistory(50),
+        staleTime: 1000 * 60 * 5,
+        enabled: activeTab === 'alerts'
+    });
+
+    const createAlertMutation = useMutation({
+        mutationFn: ({ symbol, targetPrice, condition, notes }) => createAlert(symbol, targetPrice, condition, notes),
+        onSuccess: () => refetchAlerts()
+    });
+
+    const deleteAlertMutation = useMutation({
+        mutationFn: (alertId) => deleteAlert(alertId),
+        onSuccess: () => refetchAlerts()
+    });
+
+    // Fundamentals
+    const { data: fundamentalsData, isLoading: fundamentalsLoading, error: fundamentalsError, refetch: refetchFundamentals } = useQuery({
+        queryKey: ['fundamentals', fundamentalsSymbol],
+        queryFn: () => fetchFundamentals(fundamentalsSymbol),
+        staleTime: 1000 * 60 * 10,
+        enabled: activeTab === 'fundamentals' && !!fundamentalsSymbol
+    });
+
+    // Chart Data
+    const { data: chartData, isLoading: chartLoading, error: chartError } = useQuery({
+        queryKey: ['chart', fundamentalsSymbol],
+        queryFn: () => fetchChartData(fundamentalsSymbol),
+        staleTime: 1000 * 60 * 5,
+        enabled: activeTab === 'fundamentals' && !!fundamentalsSymbol
     });
 
     const handleStockClick = (stock) => setSelectedStock(stock);
@@ -140,6 +202,7 @@ function App() {
         queryClient.invalidateQueries(['top-performers']);
         queryClient.invalidateQueries(['recommendations']);
         queryClient.invalidateQueries(['all-stocks']);
+        queryClient.invalidateQueries(['commodities']);
         refetchPerformers();
     };
 
@@ -180,6 +243,13 @@ function App() {
                             isLoading={marketLoading}
                             error={marketError}
                             onRetry={refetchMarket}
+                        />
+
+                        {/* Commodities Row */}
+                        <Commodities
+                            data={commoditiesData}
+                            isLoading={commoditiesLoading}
+                            error={commoditiesError}
                         />
 
                         {performersData && (
@@ -262,6 +332,11 @@ function App() {
                         onRetry={refetchPortfolio}
                         onAdd={(data) => addPortfolioMutation.mutate(data)}
                         onRemove={(symbol) => removePortfolioMutation.mutate(symbol)}
+                        onImport={async (file) => {
+                            const result = await importPortfolioCSV(file);
+                            if (result.success) refetchPortfolio();
+                            return result;
+                        }}
                     />
                 )}
 
@@ -273,6 +348,58 @@ function App() {
                         onAdd={handleAddCompare}
                         onRemove={handleRemoveCompare}
                     />
+                )}
+
+                {activeTab === 'commodities' && (
+                    <div className="commodities-page">
+                        <Commodities
+                            data={commoditiesData}
+                            isLoading={commoditiesLoading}
+                            error={commoditiesError}
+                        />
+                    </div>
+                )}
+
+                {activeTab === 'alerts' && (
+                    <Alerts
+                        alerts={alertsData}
+                        history={alertHistoryData}
+                        isLoading={alertsLoading}
+                        error={alertsError}
+                        onRetry={refetchAlerts}
+                        onCreate={(data) => createAlertMutation.mutate(data)}
+                        onDelete={(id) => deleteAlertMutation.mutate(id)}
+                    />
+                )}
+
+                {activeTab === 'fundamentals' && (
+                    <div className="fundamentals-page">
+                        <div className="fundamentals-header glass-card">
+                            <input
+                                type="text"
+                                placeholder="Enter symbol (e.g., RELIANCE)"
+                                value={fundamentalsSymbol}
+                                onChange={(e) => setFundamentalsSymbol(e.target.value.toUpperCase())}
+                                className="symbol-input"
+                            />
+                            <button onClick={() => refetchFundamentals()}>Analyze</button>
+                        </div>
+
+                        <StockChart
+                            data={chartData}
+                            symbol={fundamentalsSymbol}
+                            isLoading={chartLoading}
+                            error={chartError}
+                        />
+
+                        <Fundamentals
+                            data={fundamentalsData}
+                            symbol={fundamentalsSymbol}
+                            isLoading={fundamentalsLoading}
+                            error={fundamentalsError}
+                            onRetry={refetchFundamentals}
+                        />
+                    </div>
                 )}
 
                 {activeTab === 'backtesting' && (

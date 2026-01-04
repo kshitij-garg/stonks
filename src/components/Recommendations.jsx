@@ -59,7 +59,26 @@ function Recommendations({ data, isLoading, error, onStockClick, timeframe, onRe
             key: 'rsi',
             label: 'RSI',
             accessor: row => row.rsi,
-            sortable: true
+            sortable: true,
+            render: row => (
+                <span className={row.rsi > 70 ? 'negative' : row.rsi < 30 ? 'positive' : ''}>
+                    {row.rsi?.toFixed(0)}
+                </span>
+            )
+        },
+        {
+            key: 'pe_ratio',
+            label: 'P/E',
+            accessor: row => row.fundamentals?.pe_ratio || row.pe_ratio,
+            sortable: true,
+            render: row => {
+                const pe = row.fundamentals?.pe_ratio || row.pe_ratio;
+                return pe ? (
+                    <span className={pe < 20 ? 'positive' : pe > 40 ? 'negative' : ''}>
+                        {pe.toFixed(1)}
+                    </span>
+                ) : '-';
+            }
         },
         {
             key: 'macd',

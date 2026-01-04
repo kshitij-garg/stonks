@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { GitCompare, Plus, X, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Target, BarChart2 } from 'lucide-react';
+import { useState } from 'react';
+import { GitCompare, Plus, X } from 'lucide-react';
 import Panel from './Panel';
 
 function Compare({ data, isLoading, error, onAdd, onRemove }) {
@@ -12,20 +12,6 @@ function Compare({ data, isLoading, error, onAdd, onRemove }) {
         }
     };
 
-    const metrics = [
-        { key: 'price', label: 'Price', format: v => `₹${v?.toLocaleString() || 0}` },
-        { key: 'change_percent', label: 'Change', format: v => `${v >= 0 ? '+' : ''}${v?.toFixed(2) || 0}%`, color: true },
-        { key: 'score', label: 'Score', format: v => v?.toFixed(0) || '-' },
-        { key: 'rsi', label: 'RSI', format: v => v?.toFixed(0) || '-' },
-        { key: 'pe_ratio', label: 'P/E', format: v => v?.toFixed(1) || '-' },
-        { key: 'market_cap', label: 'Market Cap', format: v => formatMarketCap(v) },
-        { key: 'upside', label: 'Upside', format: v => `${v >= 0 ? '+' : ''}${v?.toFixed(1) || 0}%`, color: true },
-        { key: 'dcf_margin', label: 'DCF Margin', format: v => `${v >= 0 ? '+' : ''}${v?.toFixed(0) || 0}%`, color: true },
-        { key: 'macd_signal', label: 'MACD', format: v => v || '-' },
-        { key: 'valuation', label: 'Valuation', format: v => v || '-' },
-        { key: 'recommendation', label: 'Action', format: v => v || '-' },
-    ];
-
     const formatMarketCap = (value) => {
         if (!value) return '-';
         if (value >= 1e12) return `₹${(value / 1e12).toFixed(1)}T`;
@@ -33,6 +19,50 @@ function Compare({ data, isLoading, error, onAdd, onRemove }) {
         if (value >= 1e7) return `₹${(value / 1e7).toFixed(0)}Cr`;
         return `₹${value.toLocaleString()}`;
     };
+
+    // Helper to safely extract values from nested objects
+    const getValue = (stock, key) => {
+        switch (key) {
+            case 'price':
+                return stock.price;
+            case 'change_percent':
+                return stock.change_percent;
+            case 'score':
+                return stock.scores?.composite ?? stock.score;
+            case 'rsi':
+                return stock.rsi;
+            case 'pe_ratio':
+                return stock.fundamentals?.pe_ratio ?? stock.pe_ratio;
+            case 'market_cap':
+                return stock.market_cap ?? stock.fundamentals?.market_cap;
+            case 'upside':
+                return stock.recommendation?.upside ?? stock.upside;
+            case 'dcf_margin':
+                return stock.dcf?.margin_of_safety ?? stock.dcf_margin;
+            case 'macd_signal':
+                return stock.macd_signal;
+            case 'valuation':
+                return stock.valuation?.status ?? stock.valuation;
+            case 'action':
+                return stock.recommendation?.action ?? 'N/A';
+            default:
+                return stock[key];
+        }
+    };
+
+    const metrics = [
+        { key: 'price', label: 'Price', format: v => typeof v === 'number' ? `₹${v.toLocaleString()}` : '-' },
+        { key: 'change_percent', label: 'Change', format: v => typeof v === 'number' ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : '-', color: true },
+        { key: 'score', label: 'Score', format: v => typeof v === 'number' ? v.toFixed(0) : '-' },
+        { key: 'rsi', label: 'RSI', format: v => typeof v === 'number' ? v.toFixed(0) : '-' },
+        { key: 'pe_ratio', label: 'P/E', format: v => typeof v === 'number' ? v.toFixed(1) : '-' },
+        { key: 'market_cap', label: 'Market Cap', format: v => formatMarketCap(v) },
+        { key: 'upside', label: 'Upside', format: v => typeof v === 'number' ? `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` : '-', color: true },
+        { key: 'dcf_margin', label: 'DCF Margin', format: v => typeof v === 'number' ? `${v >= 0 ? '+' : ''}${v.toFixed(0)}%` : '-', color: true },
+        { key: 'macd_signal', label: 'MACD', format: v => typeof v === 'string' ? v : '-' },
+        { key: 'valuation', label: 'Valuation', format: v => typeof v === 'string' ? v : '-' },
+        { key: 'action', label: 'Action', format: v => typeof v === 'string' ? v : '-' },
+    ];
 
     const stocks = data || [];
 
@@ -88,7 +118,7 @@ function Compare({ data, isLoading, error, onAdd, onRemove }) {
                                     <tr key={metric.key}>
                                         <td className="metric-label">{metric.label}</td>
                                         {stocks.map(stock => {
-                                            const value = stock[metric.key] ?? stock.scores?.[metric.key] ?? stock.recommendation?.[metric.key];
+                                            const value = getValue(stock, metric.key);
                                             const formatted = metric.format(value);
                                             const colorClass = metric.color && typeof value === 'number' ? (value >= 0 ? 'positive' : 'negative') : '';
 

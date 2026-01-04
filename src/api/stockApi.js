@@ -1,6 +1,5 @@
 /**
- * Stock API Client - Professional Trading Terminal
- * Complete API with watchlist, portfolio, compare, and backtesting
+ * Stock API Client - Complete Professional Trading Terminal
  */
 
 const API_BASE = '/api';
@@ -158,6 +157,32 @@ export async function removeFromPortfolio(symbol) {
     return data.success;
 }
 
+export async function importPortfolioCSV(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE}/portfolio/import`, {
+        method: 'POST',
+        body: formData
+    });
+    const data = await response.json();
+    return data;
+}
+
+export async function clearPortfolio() {
+    const response = await fetch(`${API_BASE}/portfolio/clear`, { method: 'POST' });
+    const data = await response.json();
+    return data.success;
+}
+
+export async function fetchPortfolioAnalytics(timeframe = 'weekly') {
+    const response = await fetch(`${API_BASE}/portfolio/analytics?timeframe=${timeframe}`);
+    if (!response.ok) throw new Error('Failed to fetch portfolio analytics');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
 // Compare
 export async function fetchCompareStocks(symbols) {
     const response = await fetch(`${API_BASE}/compare?symbols=${symbols.join(',')}`);
@@ -181,4 +206,123 @@ export async function saveRecommendationsSnapshot(timeframe = 'weekly') {
     if (!response.ok) throw new Error('Failed to save snapshot');
     const data = await response.json();
     return data;
+}
+
+// =============================================
+// COMMODITIES
+// =============================================
+
+export async function fetchCommodities() {
+    const response = await fetch(`${API_BASE}/commodities`);
+    if (!response.ok) throw new Error('Failed to fetch commodities');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+export async function fetchCommodity(symbol, period = '6mo') {
+    const response = await fetch(`${API_BASE}/commodity/${symbol}?period=${period}`);
+    if (!response.ok) throw new Error('Failed to fetch commodity');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+export async function fetchMarketSummary() {
+    const response = await fetch(`${API_BASE}/market-summary`);
+    if (!response.ok) throw new Error('Failed to fetch market summary');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+// =============================================
+// ALERTS
+// =============================================
+
+export async function fetchAlerts(symbol = null) {
+    const url = symbol ? `${API_BASE}/alerts?symbol=${symbol}` : `${API_BASE}/alerts`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch alerts');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+export async function createAlert(symbol, targetPrice, condition = 'above', notes = '') {
+    const response = await fetch(`${API_BASE}/alerts/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol, target_price: targetPrice, condition, notes })
+    });
+    const data = await response.json();
+    return data;
+}
+
+export async function deleteAlert(alertId) {
+    const response = await fetch(`${API_BASE}/alerts/${alertId}/delete`, { method: 'POST' });
+    const data = await response.json();
+    return data.success;
+}
+
+export async function checkAlerts() {
+    const response = await fetch(`${API_BASE}/alerts/check`, { method: 'POST' });
+    const data = await response.json();
+    return data;
+}
+
+export async function fetchAlertHistory(limit = 50) {
+    const response = await fetch(`${API_BASE}/alerts/history?limit=${limit}`);
+    if (!response.ok) throw new Error('Failed to fetch alert history');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+// =============================================
+// FUNDAMENTALS
+// =============================================
+
+export async function fetchFundamentals(symbol) {
+    const response = await fetch(`${API_BASE}/fundamentals/${symbol}`);
+    if (!response.ok) throw new Error('Failed to fetch fundamentals');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+export async function fetchQuarterlyResults(symbol) {
+    const response = await fetch(`${API_BASE}/fundamentals/${symbol}/quarterly`);
+    if (!response.ok) throw new Error('Failed to fetch quarterly results');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+export async function fetchBalanceSheet(symbol) {
+    const response = await fetch(`${API_BASE}/fundamentals/${symbol}/balance-sheet`);
+    if (!response.ok) throw new Error('Failed to fetch balance sheet');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+export async function fetchPeerComparison(symbol) {
+    const response = await fetch(`${API_BASE}/fundamentals/${symbol}/peers`);
+    if (!response.ok) throw new Error('Failed to fetch peer comparison');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
+}
+
+// =============================================
+// CHART DATA
+// =============================================
+
+export async function fetchChartData(symbol, period = '6mo', interval = '1d') {
+    const response = await fetch(`${API_BASE}/chart/${symbol}?period=${period}&interval=${interval}`);
+    if (!response.ok) throw new Error('Failed to fetch chart data');
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    return data.data;
 }
