@@ -1,11 +1,20 @@
 /**
  * Stock API Client - Complete Professional Trading Terminal
+ * Supports demo mode with mock data for GitHub Pages
  */
+
+import { MOCK_DATA, isDemoMode } from './mockData';
 
 const API_BASE = '/api';
 
+// Check if we're in demo mode
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || isDemoMode();
+
 // Main data endpoints
 export async function fetchTopPerformers(timeframe = 'weekly') {
+    if (DEMO_MODE) {
+        return MOCK_DATA.topPerformers;
+    }
     const response = await fetch(`${API_BASE}/top-performers?timeframe=${timeframe}`);
     if (!response.ok) throw new Error('Failed to fetch top performers');
     const data = await response.json();

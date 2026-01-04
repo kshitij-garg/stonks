@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
     plugins: [react()],
+    base: process.env.VITE_DEMO_MODE === 'true' ? '/stonks/' : '/',
     server: {
         port: 5173,
         proxy: {
@@ -11,5 +12,9 @@ export default defineConfig({
                 changeOrigin: true
             }
         }
+    },
+    define: {
+        'import.meta.env.VITE_DEMO_MODE': JSON.stringify(process.env.VITE_DEMO_MODE || 'false')
     }
 })
+
