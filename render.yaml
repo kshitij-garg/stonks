@@ -14,7 +14,6 @@ services:
       - key: FLASK_ENV
         value: production
     rootDir: backend
-    plan: free
     healthCheckPath: /api/health
 
   # Frontend Static Site
@@ -34,4 +33,4 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-    plan: free
+
