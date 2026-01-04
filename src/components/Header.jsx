@@ -25,7 +25,7 @@ function Header({ activeTab, setActiveTab, timeframe, setTimeframe, onRefresh })
                     <Activity size={16} color="var(--accent-green)" className="pulse-icon" />
                 </div>
                 <div>
-                    <h1>India Stock Analyzer</h1>
+                    <h1>Stonks by KG</h1>
                     <p>135+ Stocks • Gold • Silver • Crude Oil</p>
                 </div>
             </div>

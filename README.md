@@ -1,11 +1,12 @@
-# India Stock Analyzer 🇮🇳📈
+# Stonks by KG 📈🚀
 
 A professional-grade stock analysis and portfolio tracking application for Indian markets (NSE/BSE). Features technical analysis, DCF valuation, AI-powered recommendations, and real-time commodity tracking.
 
-![Dashboard](https://img.shields.io/badge/Stocks-135+-blue)
+![Stocks](https://img.shields.io/badge/Stocks-135+-blue)
 ![Python](https://img.shields.io/badge/Python-3.8+-green)
 ![React](https://img.shields.io/badge/React-18+-cyan)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-red)
 
 ## ✨ Features
 
@@ -57,8 +58,8 @@ A professional-grade stock analysis and portfolio tracking application for India
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/india-stock-analyzer.git
-cd india-stock-analyzer
+git clone https://github.com/AquibPy/Stonks.git
+cd Stonks
 ```
 
 2. **Install backend dependencies**
@@ -92,7 +93,7 @@ http://localhost:5173
 ## 📁 Project Structure
 
 ```
-india-stock-analyzer/
+Stonks/
 ├── backend/
 │   ├── main.py              # Flask application entry
 │   ├── requirements.txt     # Python dependencies
@@ -178,4 +179,4 @@ This software is for **educational purposes only**. It is not financial advice. 
 
 ---
 
-Built with ❤️ for the Indian investor community
+Built with ❤️ by **KG** for the Indian investor community
