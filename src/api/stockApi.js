@@ -5,7 +5,8 @@
 
 import { MOCK_DATA, isDemoMode } from './mockData';
 
-const API_BASE = '/api';
+// API Base URL - uses environment variable for production, or local for dev
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 // Check if we're in demo mode
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || isDemoMode();

@@ -1,0 +1,37 @@
+# Render Blueprint - Stonks by KG
+# Deploy with: render blueprint apply
+
+services:
+  # Backend API Service
+  - type: web
+    name: stonks-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: FLASK_ENV
+        value: production
+    rootDir: backend
+    plan: free
+    healthCheckPath: /api/health
+
+  # Frontend Static Site
+  - type: web
+    name: stonks-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://stonks-api.onrender.com
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    plan: free
