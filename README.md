@@ -47,48 +47,68 @@ A professional-grade stock analysis and portfolio tracking application for India
 - Fundamentals (quarterly results, balance sheet, peer comparison)
 - Backtesting framework
 
+## 🌐 Live Demo
+
+Try the static demo (with sample data): **https://kshitij-garg.github.io/stonks/**
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.8+
 - Node.js 16+
-- npm or yarn
 
-### Installation
+### One-Click Setup (Windows)
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/kshitij-garg/Stonks.git
-cd Stonks
+git clone https://github.com/kshitij-garg/stonks.git
+cd stonks
 ```
 
-2. **Install backend dependencies**
+2. **Run setup script** (installs all dependencies)
+```bash
+setup.bat
+```
+
+3. **Start the application**
+```bash
+start.bat
+```
+
+The browser will open automatically at `http://localhost:5173`
+
+### Manual Setup
+
+<details>
+<summary>Click to expand manual setup instructions</summary>
+
+1. **Install backend dependencies**
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-3. **Install frontend dependencies**
+2. **Install frontend dependencies**
 ```bash
 cd ..
 npm install
 ```
 
-4. **Start the backend server**
+3. **Start backend server**
 ```bash
 cd backend
-python main.py
+py -3 main.py
 ```
 
-5. **Start the frontend (new terminal)**
+4. **Start frontend (new terminal)**
 ```bash
 npm run dev
 ```
 
-6. **Open in browser**
-```
-http://localhost:5173
-```
+5. **Open browser**: http://localhost:5173
+
+</details>
+
 
 ## 📁 Project Structure
 
