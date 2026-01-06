@@ -96,8 +96,8 @@ echo.
 echo  Frontend: http://localhost:5173
 echo  Backend:  http://localhost:5000
 echo.
-echo  Close this window to keep servers running.
-echo  To stop, close the Backend and Frontend windows.
+echo  Closing launcher in 3 seconds...
 echo.
 
-pause
+timeout /t 3 /nobreak >nul
+exit
