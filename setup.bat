@@ -10,7 +10,7 @@ echo.
 
 :: Check Python
 echo [1/5] Checking Python...
-python --version >nul 2>&1
+py -3 --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] Python not found! Please install Python 3.8+
     echo Download: https://www.python.org/downloads/
@@ -33,7 +33,7 @@ echo       Node.js found!
 :: Install Python dependencies
 echo [3/5] Installing Python dependencies...
 cd backend
-pip install -r requirements.txt --quiet
+py -3 -m pip install -r requirements.txt --quiet
 cd ..
 echo       Python dependencies installed!
 

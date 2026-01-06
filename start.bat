@@ -10,7 +10,7 @@ echo.
 
 :: Start backend in new window
 echo Starting Backend Server...
-start "Stonks Backend" cmd /k "cd backend && python main.py"
+start "Stonks Backend" cmd /k "cd backend && py -3 main.py"
 
 :: Wait for backend to start
 timeout /t 3 /nobreak >nul
