@@ -24,11 +24,11 @@ def health():
 def save_daily_recommendations():
     """Background task to save today's recommendations for backtesting"""
     try:
-        from services.stock_service import get_all_stocks
+        from services.scoring import get_all_scored_stocks
         from services.backtest import save_recommendations, save_current_prices
         
         print("[Backtest] Saving daily recommendations...")
-        stocks = get_all_stocks('weekly')
+        stocks = get_all_scored_stocks(timeframe='weekly')
         
         if stocks:
             save_recommendations(stocks, 'weekly')
