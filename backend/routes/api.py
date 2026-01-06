@@ -507,6 +507,55 @@ def save_snapshot():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@api_bp.route('/backtest/history', methods=['GET'])
+def get_recommendation_history():
+    """Get datewise recommendation history"""
+    try:
+        from services.backtest import get_recommendation_history
+        
+        days = int(request.args.get('days', 30))
+        symbol = request.args.get('symbol', None)
+        
+        history = get_recommendation_history(days, symbol)
+        
+        # Group by date
+        by_date = {}
+        for rec in history:
+            date = rec.get('timestamp', 'Unknown')
+            if date not in by_date:
+                by_date[date] = []
+            by_date[date].append({
+                'symbol': rec.get('symbol'),
+                'action': rec.get('action'),
+                'confidence': rec.get('confidence'),
+                'price': rec.get('price_at_rec'),
+                'dcf_value': rec.get('dcf_value'),
+                'upside': rec.get('upside_target'),
+                'score': rec.get('composite_score'),
+                'sector': rec.get('sector')
+            })
+        
+        # Convert to sorted list
+        dates_list = []
+        for date in sorted(by_date.keys(), reverse=True):
+            dates_list.append({
+                'date': date,
+                'recommendations': by_date[date],
+                'count': len(by_date[date]),
+                'strong_buys': len([r for r in by_date[date] if r['action'] == 'STRONG BUY']),
+                'buys': len([r for r in by_date[date] if r['action'] == 'BUY']),
+                'sells': len([r for r in by_date[date] if r['action'] in ['SELL', 'STRONG SELL']])
+            })
+        
+        return jsonify({
+            "success": True, 
+            "data": dates_list,
+            "total_dates": len(dates_list)
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # Import pandas for type checking
 import pandas as pd
 
