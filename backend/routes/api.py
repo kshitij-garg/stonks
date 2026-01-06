@@ -35,7 +35,17 @@ def get_loading_progress():
 
 @api_bp.route('/cache-status', methods=['GET'])
 def cache_status():
-    return jsonify({"success": True, "data": get_cache_status()})
+    try:
+        from services.cache import get_all_cache_stats
+        advanced_stats = get_all_cache_stats()
+    except:
+        advanced_stats = {}
+    
+    return jsonify({
+        "success": True, 
+        "data": get_cache_status(),
+        "advanced": advanced_stats
+    })
 
 
 @api_bp.route('/prefetch', methods=['POST'])
