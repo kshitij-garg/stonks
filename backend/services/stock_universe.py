@@ -187,3 +187,56 @@ STOCK_COUNTS = {
     "midcap50": len(NIFTY_MIDCAP_50),
     "total": len(NIFTY_50) + len(NIFTY_NEXT_50) + len(NIFTY_MIDCAP_50)
 }
+
+
+def search_stocks(query: str, limit: int = 10):
+    """
+    Search stocks by symbol or name with fuzzy matching
+    Returns list of matching stocks sorted by relevance
+    """
+    if not query or len(query) < 1:
+        return []
+    
+    query = query.upper().strip()
+    all_stocks = get_all_stocks()
+    results = []
+    
+    for symbol, info in all_stocks.items():
+        name = info.get('name', '').upper()
+        sector = info.get('sector', '')
+        
+        # Calculate relevance score
+        score = 0
+        
+        # Exact symbol match = highest priority
+        if symbol == query:
+            score = 100
+        # Symbol starts with query
+        elif symbol.startswith(query):
+            score = 80 + (10 - min(len(symbol) - len(query), 10))
+        # Symbol contains query
+        elif query in symbol:
+            score = 50
+        # Name starts with query
+        elif name.startswith(query):
+            score = 40
+        # Name contains query
+        elif query in name:
+            score = 30
+        # Sector matches
+        elif query in sector.upper():
+            score = 20
+        
+        if score > 0:
+            results.append({
+                'symbol': symbol,
+                'name': info.get('name', ''),
+                'sector': sector,
+                'cap': info.get('cap', ''),
+                'score': score
+            })
+    
+    # Sort by score (highest first) and limit results
+    results.sort(key=lambda x: (-x['score'], x['symbol']))
+    return results[:limit]
+

@@ -1,6 +1,7 @@
 import { TrendingUp, LayoutDashboard, Filter, Target, LineChart, Eye, Briefcase, GitCompare, RefreshCw, Calendar, Activity, BarChart2, Bell, Coins, FileText } from 'lucide-react';
+import SearchBar from './SearchBar';
 
-function Header({ activeTab, setActiveTab, timeframe, setTimeframe, onRefresh }) {
+function Header({ activeTab, setActiveTab, timeframe, setTimeframe, onRefresh, onSelectStock }) {
     const mainTabs = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { id: 'recommendations', label: 'Recommendations', icon: Target },
@@ -70,6 +71,8 @@ function Header({ activeTab, setActiveTab, timeframe, setTimeframe, onRefresh })
                         ))}
                     </div>
                 </nav>
+
+                <SearchBar onSelectStock={onSelectStock} />
 
                 <button className="refresh-btn" onClick={onRefresh} title="Refresh Data">
                     <RefreshCw size={16} />

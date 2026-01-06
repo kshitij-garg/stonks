@@ -57,6 +57,21 @@ def trigger_prefetch():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@api_bp.route('/search', methods=['GET'])
+def search_stocks_api():
+    """Quick search for stocks with autocomplete"""
+    try:
+        from services.stock_universe import search_stocks
+        
+        query = request.args.get('q', '')
+        limit = int(request.args.get('limit', 10))
+        
+        results = search_stocks(query, limit)
+        return jsonify({"success": True, "data": results, "query": query})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @api_bp.route('/universe', methods=['GET'])
 def get_stock_universe():
     """Get all available stocks grouped by index"""
