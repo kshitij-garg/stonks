@@ -46,6 +46,7 @@ A professional-grade stock analysis and portfolio tracking application for India
 - Stock comparison (up to 5 stocks)
 - Fundamentals (quarterly results, balance sheet, peer comparison)
 - Backtesting framework
+- **Quick search with autocomplete** (any ticker)
 
 ## 🌐 Live Demo
 
