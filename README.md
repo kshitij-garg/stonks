@@ -1,203 +1,126 @@
-# Stonks by KG 📈🚀
+﻿# QuantRebalance 📈⚖️
 
-A professional-grade stock analysis and portfolio tracking application for Indian markets (NSE/BSE). Features technical analysis, DCF valuation, AI-powered recommendations, and real-time commodity tracking.
+**Institutional-Grade Daily Portfolio Rebalancer & Equity Analysis Engine** for Indian Equities, Index & Sectoral ETFs, Mutual Funds, Commodities, and Liquid Arbitrage Reserves.
 
-![Stocks](https://img.shields.io/badge/Stocks-135+-blue)
-![Python](https://img.shields.io/badge/Python-3.8+-green)
-![React](https://img.shields.io/badge/React-18+-cyan)
-![License](https://img.shields.io/badge/License-MIT-yellow)
-![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-red)
+---
 
-## ✨ Features
+## 🌟 Key Features
 
-### 📊 Dashboard
-- Market indices (NIFTY 50, SENSEX, BANK NIFTY)
-- Commodities tracking (Gold, Silver, Crude Oil)
-- Top/Bottom performers with scoring
-- Sector heatmap
+### 1. 🔄 Multi-Strategy Institutional Rebalancing
+- **Strategic Core-Satellite (Recommended)**:
+  - 40% Core (Direct Bluechip Equities & Index ETFs)
+  - 25% Satellite Alpha (Mid/Small Cap Equities & Mutual Funds)
+  - 10% Commodities Hedge (Gold BeES, Silver ETF)
+  - 25% Tactical Arbitrage & Liquid Buffer (Dry powder for market dips)
+- **Aggressive Growth**: 55% Equities/ETFs, 25% Active MFs, 10% Gold, 10% Cash.
+- **Conservative Wealth Preservation**: 40% Liquid Arbitrage Buffer, 15% Precious Metals, 45% High-Quality Bluechip Assets.
+- **Custom Target Bounds**: Interactive allocation controls with real-time drift tracking.
 
-### 🎯 Recommendations Engine
-- Multi-factor scoring (momentum, technical, trend, volume)
-- DCF valuation with margin of safety
-- STRONG BUY → STRONG SELL ratings
-- Confidence scores and target prices
+### 2. 🛡️ Tax-Efficient Smart Cash Deployment
+- **Zero Capital Gains Tax Mode**: Intelligently deploys dry powder from your liquid reserve (e.g., Kotak Arbitrage Fund) or fresh cash injections to purchase under-allocated assets.
+- **Zero Unnecessary Churn**: Does not trigger capital gains tax from selling unless explicitly selected.
+- **Drift Tolerance Filtering**: Configurable tolerance bands (±1% to ±8%) prevent over-trading on minor market fluctuations.
 
-### 📈 Technical Analysis
-- RSI, MACD, Bollinger Bands, ATR
-- Moving Averages (SMA 20/50, EMA)
-- Pattern detection (Golden Cross, Death Cross, etc.)
-- Interactive charts with indicator overlays
+### 3. 📊 Real-Time Market Fundamentals & Technical Analytics
+- **Live NSE/BSE Market Quotes**: Automated Yahoo Finance crumb authentication session for sub-second quote and OHLCV fetching.
+- **AMFI Mutual Funds Integration**: Directly fetches daily NAVs and category tracking for all open-ended Indian mutual funds via `api.mfapi.in`.
+- **Technical Analysis Engine**:
+  - RSI (14-Day) momentum oscillator & oversold accumulation alerts.
+  - Moving Averages: 20-Day, 50-Day, 200-Day SMA with Golden/Death Cross detection.
+  - Dynamic 20-day swing support and resistance boundaries.
+  - 52-Week High/Low range position.
+- **Fundamental Multiples & Analyst Consensus**:
+  - Trailing and Forward P/E multiples.
+  - Market Capitalization, Profit Margins, Gross Margins, Debt/Equity.
+  - Institutional Analyst coverage and consensus ratings (`Strong Buy`, `Buy`, `Hold`, `Sell`).
+  - Analyst Consensus Price Targets (Mean, High, Low) with % upside calculation.
 
-### 💼 Portfolio Management
-- Import holdings from Zerodha/Groww CSV
-- Real-time P&L tracking
-- Sector allocation visualization
-- 1-week upside predictions
-- Risk assessment and concentration warnings
+### 4. ⚡ 1-Click Trade Execution & Export
+- **CSV Trade Sheet**: Direct download of calculated orders with exact quantities, rupee value, target prices, and stop losses.
+- **Clipboard Export**: Instant copy to clipboard for rapid order placement on your broker terminal.
 
-### 🔔 Price Alerts
-- Set above/below target alerts
-- Alert history tracking
-- Persistent storage
+### 5. 📁 Daily Multi-Broker CSV Ingestion
+- Auto-detects schemas from:
+  - **Zerodha Kite** (Holdings & Tradebook)
+  - **Groww** (Holdings export)
+  - **Angel One**
+  - **Upstox**
+  - **ICICI Direct**
+  - Standard Generic Broker CSVs
 
-### 📋 Additional Features
-- Stock screener with 10+ filters
-- Watchlist management
-- Stock comparison (up to 5 stocks)
-- Fundamentals (quarterly results, balance sheet, peer comparison)
-- Backtesting framework
-- **Quick search with autocomplete** (any ticker)
-
-## 🌐 Live Demo
-
-Try the static demo (with sample data): **https://kshitij-garg.github.io/stonks/**
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- Node.js 16+
+- Python 3.8+ (Python 3.10, 3.11, or 3.14)
 
-### One-Click Setup (Windows)
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/kshitij-garg/stonks.git
-cd stonks
-```
-
-2. **Run setup script** (installs all dependencies)
-```bash
-setup.bat
-```
-
-3. **Start the application**
-```bash
+### 1-Click Launch (Windows)
+Double-click `start.bat` in the project folder:
+```cmd
 start.bat
 ```
+This automatically starts the backend server on `http://127.0.0.1:5000` and opens your browser.
 
-The browser will open automatically at `http://localhost:5173`
-
-### Manual Setup
-
-<details>
-<summary>Click to expand manual setup instructions</summary>
-
-1. **Install backend dependencies**
+### 1-Click Launch (Linux / macOS)
 ```bash
-cd backend
+chmod +x start.sh
+./start.sh
+```
+
+### Manual Launch
+```bash
+# 1. Install dependencies
 pip install -r requirements.txt
+
+# 2. Start the application
+python app.py
 ```
-
-2. **Install frontend dependencies**
-```bash
-cd ..
-npm install
-```
-
-3. **Start backend server**
-```bash
-cd backend
-py -3 main.py
-```
-
-4. **Start frontend (new terminal)**
-```bash
-npm run dev
-```
-
-5. **Open browser**: http://localhost:5173
-
-</details>
-
-
-## 📁 Project Structure
-
-```
-Stonks/
-├── backend/
-│   ├── main.py              # Flask application entry
-│   ├── requirements.txt     # Python dependencies
-│   ├── routes/
-│   │   └── api.py          # REST API endpoints
-│   ├── services/
-│   │   ├── stock_service.py    # Stock data fetching
-│   │   ├── stock_universe.py   # NIFTY 50/Next 50/Midcap 50
-│   │   ├── indicators.py       # Technical indicators
-│   │   ├── scoring.py          # Stock scoring & recommendations
-│   │   ├── valuation.py        # DCF valuation
-│   │   ├── patterns.py         # Chart patterns
-│   │   ├── portfolio.py        # Portfolio management
-│   │   ├── watchlist.py        # Watchlist service
-│   │   ├── alerts.py           # Price alerts
-│   │   ├── commodities.py      # Gold/Silver/Crude
-│   │   ├── fundamentals.py     # Quarterly/Balance sheet
-│   │   └── csv_import.py       # Zerodha/Groww import
-│   └── data/                # SQLite databases (gitignored)
-├── src/
-│   ├── App.jsx             # Main React component
-│   ├── api/
-│   │   └── stockApi.js     # API client
-│   └── components/
-│       ├── Dashboard components
-│       ├── Portfolio.jsx
-│       ├── StockChart.jsx
-│       └── ...
-├── index.html
-├── vite.config.js
-└── package.json
-```
-
-## 🔧 Configuration
-
-### Environment Variables (optional)
-Create a `.env` file in the root:
-```
-FLASK_DEBUG=1
-FLASK_PORT=5000
-```
-
-### Stock Universe
-Edit `backend/services/stock_universe.py` to add/remove stocks.
-
-## 📖 API Documentation
-
-### Core Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/top-performers` | GET | Top 10 best/worst stocks |
-| `/api/recommendations` | GET | Buy/Sell recommendations |
-| `/api/stock/<symbol>` | GET | Stock detail with indicators |
-| `/api/screener` | GET | Filter stocks by criteria |
-| `/api/portfolio` | GET | Portfolio summary |
-| `/api/portfolio/analytics` | GET | Portfolio insights & predictions |
-| `/api/commodities` | GET | Gold, Silver, Crude prices |
-| `/api/alerts` | GET | Active price alerts |
-| `/api/chart/<symbol>` | GET | OHLC with indicators |
-
-## ⚠️ Limitations
-
-See [LIMITATIONS.md](LIMITATIONS.md) for detailed limitations and known issues.
-
-**Key Limitations:**
-- Data sourced from yfinance (may have delays)
-- DCF valuations are estimates, not financial advice
-- Predictions are based on historical patterns
-- No real-time streaming data
-
-## 🤝 Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file.
-
-## ⚠️ Disclaimer
-
-This software is for **educational purposes only**. It is not financial advice. Always do your own research and consult a qualified financial advisor before making investment decisions.
+Open **`http://127.0.0.1:5000`** in your browser.
 
 ---
 
-Built with ❤️ by **KG** for the Indian investor community
+## 📂 Project Architecture
+
+```text
+├── app.py                     # Flask REST API & Web Server
+├── analyzer.py                # Technical & Fundamental Analysis Engine
+├── rebalancer.py              # Portfolio Rebalancing & Allocation Math
+├── csv_parser.py              # Universal Broker CSV Parser
+├── test_integration.py        # Automated test verification suite
+├── requirements.txt           # Python dependencies
+├── start.bat                  # 1-click Windows launcher
+├── start.sh                   # Unix/Linux launcher
+├── data/
+│   └── sample_holdings.csv    # Default/current portfolio state
+├── docs/
+│   └── ARCHIVE_V1.md          # Archive documentation for legacy v1 architecture
+└── static/
+    ├── index.html             # Institutional dark-theme terminal UI
+    ├── styles.css             # Glassmorphism design system
+    └── app.js                 # Chart.js analytics & dashboard logic
+```
+
+---
+
+## 📖 REST API Reference
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `GET /api/portfolio` | GET | Returns current portfolio holdings, enriched live data, and KPI metrics |
+| `POST /api/upload` | POST | Accepts multipart CSV or raw CSV body, parses holdings, updates state |
+| `POST /api/rebalance` | POST | Executes rebalance simulation with selected strategy, tolerance, and inflow |
+| `GET /api/deepdive/<symbol>` | GET | Returns full technical indicators, consensus targets, and trade plan for symbol |
+
+---
+
+## 🔒 Security & Privacy
+- **100% Local**: All portfolio calculation and broker CSV parsing happens entirely on your local machine.
+- No broker credentials, API keys, or personal identifiable information (PII) are ever transmitted to any external server.
+
+---
+
+## 📄 License & Archive
+- MIT License - see [LICENSE](LICENSE).
+- Legacy v1 documentation: [docs/ARCHIVE_V1.md](docs/ARCHIVE_V1.md).
+- Legacy source code branch: `v1-legacy-backup` (tag `v1.0-legacy`).

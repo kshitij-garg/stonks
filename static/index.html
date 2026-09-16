@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantRebalance | Institutional Portfolio Rebalancer & Equity Engine</title>
+  <meta name="description" content="Institutional-grade daily portfolio rebalancer, technical indicator analyzer, and fundamental consensus price target engine for Indian equities, ETFs, and mutual funds.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Dynamic Glow Backgrounds -->
+  <div class="glow-orb glow-top-left"></div>
+  <div class="glow-orb glow-bottom-right"></div>
+  <div class="glow-orb glow-center"></div>
+
+  <!-- Main Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-area">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+            <polyline points="16 7 22 7 22 13"></polyline>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <span class="brand-name">Quant<span class="text-gradient">Rebalance</span></span>
+          <span class="brand-tag">Institutional Portfolio Engine</span>
+        </div>
+      </div>
+
+      <div class="market-status-bar">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span class="status-text">NSE / BSE & AMFI LIVE</span>
+        </div>
+        <div class="sync-badge" id="last-sync-time">
+          <span>Synced: Live Today</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-refresh-data" title="Refresh Live Market Quotes">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6"></path>
+            <path d="M1 20v-6h6"></path>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span class="btn-text">Refresh Quotes</span>
+        </button>
+        <button class="btn btn-primary btn-sm" id="btn-open-upload-modal">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Upload Daily CSV</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App Container -->
+  <main class="main-container">
+    <!-- Top KPI Cards Section -->
+    <section class="kpi-grid">
+      <div class="kpi-card glass-panel" id="card-total-val">
+        <div class="kpi-header">
+          <span class="kpi-label">TOTAL PORTFOLIO VALUE</span>
+          <span class="kpi-badge badge-neutral" id="kpi-day-badge">Live Market</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-main-number" id="kpi-total-val">₹1,06,54,735</span>
+          <span class="kpi-subtext" id="kpi-day-pnl">+₹31,420 today</span>
+        </div>
+        <div class="kpi-sparkbar">
+          <div class="sparkbar-fill" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="card-pnl">
+        <div class="kpi-header">
+          <span class="kpi-label">TOTAL UNREALIZED P&L</span>
+          <span class="kpi-badge badge-success" id="kpi-pnl-pct">+1.84% Net</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-main-number text-success" id="kpi-pnl-val">+₹1,92,193</span>
+          <span class="kpi-subtext">Invested: <strong id="kpi-invested-val">₹1,04,62,541</strong></span>
+        </div>
+        <div class="kpi-sparkbar">
+          <div class="sparkbar-fill bg-success" style="width: 68%;"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="card-dry-powder">
+        <div class="kpi-header">
+          <span class="kpi-label">DRY POWDER / TACTICAL BUFFER</span>
+          <span class="kpi-badge badge-info" id="kpi-buffer-badge">47.88% Buffer</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-main-number text-info" id="kpi-buffer-val">₹51,01,694</span>
+          <span class="kpi-subtext">Kotak Arbitrage / Liquid Reserves</span>
+        </div>
+        <div class="kpi-sparkbar">
+          <div class="sparkbar-fill bg-info" style="width: 48%;"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="card-conviction">
+        <div class="kpi-header">
+          <span class="kpi-label">QUALITY & CONVICTION SCORE</span>
+          <span class="kpi-badge badge-gold" id="kpi-conviction-badge">Quant Score</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-main-number text-gold" id="kpi-score-val">74.2 <span class="score-den">/ 100</span></span>
+          <span class="kpi-subtext">22 Assets Enriched & Scored</span>
+        </div>
+        <div class="kpi-sparkbar">
+          <div class="sparkbar-fill bg-gold" style="width: 74%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="view-tabs-nav">
+      <button class="tab-btn active" data-view="view-holdings" aria-selected="true">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>Portfolio Holdings & Analytics</span>
+        <span class="tab-count-badge" id="holdings-count-badge">22</span>
+      </button>
+
+      <button class="tab-btn" data-view="view-rebalance" aria-selected="false">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        <span>Institutional Rebalancer & Orders</span>
+        <span class="tab-chip-highlight">Actionable</span>
+      </button>
+
+      <button class="tab-btn" data-view="view-allocation" aria-selected="false">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2a10 10 0 0 1 10 10h-10z"></path>
+        </svg>
+        <span>Asset Allocation & Drift Charts</span>
+      </button>
+    </nav>
+
+    <!-- View 1: Holdings & Equity Analysis -->
+    <section class="view-content active" id="view-holdings">
+      <!-- Table Controls Bar -->
+      <div class="table-controls-bar glass-panel">
+        <div class="category-chips-row" id="category-chips">
+          <button class="category-chip active" data-category="all">All Holdings (22)</button>
+          <button class="category-chip" data-category="Direct Equities">Direct Equities (7)</button>
+          <button class="category-chip" data-category="Index & Sectoral ETFs">ETFs (5)</button>
+          <button class="category-chip" data-category="Mutual Funds">Mutual Funds (8)</button>
+          <button class="category-chip" data-category="Commodities">Gold & Silver (2)</button>
+          <button class="category-chip" data-category="Arbitrage / Cash">Arbitrage Buffer (1)</button>
+        </div>
+
+        <div class="search-sort-group">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="holding-search-input" placeholder="Search symbol, fund, category...">
+          </div>
+
+          <div class="sort-select-wrapper">
+            <label for="sort-select" class="sr-only">Sort by</label>
+            <select id="sort-select" class="glass-select">
+              <option value="val-desc">Current Value: High to Low</option>
+              <option value="val-asc">Current Value: Low to High</option>
+              <option value="pnl-desc">Total P&L %: Highest First</option>
+              <option value="pnl-asc">Total P&L %: Lowest First</option>
+              <option value="score-desc">Quant Score: Highest First</option>
+              <option value="day-desc">Day Change %: Top Gainers</option>
+              <option value="name-asc">Instrument Name: A to Z</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Holdings Table -->
+      <div class="table-responsive glass-panel">
+        <table class="holdings-table" id="holdings-data-table">
+          <thead>
+            <tr>
+              <th>Instrument / Asset</th>
+              <th class="text-right">Quantity</th>
+              <th class="text-right">Avg. Cost</th>
+              <th class="text-right">Live Price / NAV</th>
+              <th class="text-right">Current Value</th>
+              <th class="text-right">P&L (% Return)</th>
+              <th class="text-center">Technical & Trend</th>
+              <th class="text-center">Valuation / Target</th>
+              <th class="text-center">Quant Score</th>
+              <th class="text-center">Recommendation</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="holdings-table-body">
+            <!-- Dynamic Rows rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- View 2: Institutional Rebalancer & Orders -->
+    <section class="view-content" id="view-rebalance">
+      <!-- Strategy Selector & Mode Setup -->
+      <div class="rebalance-config-grid">
+        <!-- Strategy Selection Cards -->
+        <div class="glass-panel config-panel">
+          <h2 class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            Select Target Allocation Framework
+          </h2>
+          
+          <div class="strategy-cards-grid">
+            <div class="strategy-card selected" data-strategy="core_satellite">
+              <div class="strat-header">
+                <span class="strat-title">Strategic Core-Satellite</span>
+                <span class="strat-tag tag-rec">Recommended</span>
+              </div>
+              <p class="strat-desc">40% Core Equity & Index ETFs, 25% Mid/Small Satellite Alpha, 10% Gold/Silver Hedge, 25% Tactical Cash/Arbitrage Buffer.</p>
+              <div class="strat-weights-preview">
+                <span class="weight-chip">Equities: 18%</span>
+                <span class="weight-chip">ETFs: 22%</span>
+                <span class="weight-chip">MFs: 25%</span>
+                <span class="weight-chip">Gold: 10%</span>
+                <span class="weight-chip">Cash: 25%</span>
+              </div>
+            </div>
+
+            <div class="strategy-card" data-strategy="balanced_growth">
+              <div class="strat-header">
+                <span class="strat-title">Aggressive Growth</span>
+                <span class="strat-tag tag-growth">High Alpha</span>
+              </div>
+              <p class="strat-desc">55% Equities & Index ETFs, 25% Mutual Funds, 10% Commodities, 10% Minimal Arbitrage Reserve.</p>
+              <div class="strat-weights-preview">
+                <span class="weight-chip">Equities: 25%</span>
+                <span class="weight-chip">ETFs: 30%</span>
+                <span class="weight-chip">MFs: 25%</span>
+                <span class="weight-chip">Gold: 10%</span>
+                <span class="weight-chip">Cash: 10%</span>
+              </div>
+            </div>
+
+            <div class="strategy-card" data-strategy="wealth_preservation">
+              <div class="strat-header">
+                <span class="strat-title">Conservative Wealth Preservation</span>
+                <span class="strat-tag tag-defensive">Capital Protect</span>
+              </div>
+              <p class="strat-desc">40% Liquid Arbitrage Cash Buffer, 15% Precious Metals, 45% High-Quality Bluechip Equities, ETFs and Index Funds.</p>
+              <div class="strat-weights-preview">
+                <span class="weight-chip">Equities: 15%</span>
+                <span class="weight-chip">ETFs: 15%</span>
+                <span class="weight-chip">MFs: 15%</span>
+                <span class="weight-chip">Gold: 15%</span>
+                <span class="weight-chip">Cash: 40%</span>
+              </div>
+            </div>
+
+            <div class="strategy-card" data-strategy="risk_parity">
+              <div class="strat-header">
+                <span class="strat-title">All-Weather Risk Parity</span>
+                <span class="strat-tag tag-parity">Balanced Risk</span>
+              </div>
+              <p class="strat-desc">Equal risk contribution: 35% Equities/ETFs, 20% Gold/Silver, 15% Mutual Funds, 30% Arbitrage reserve.</p>
+              <div class="strat-weights-preview">
+                <span class="weight-chip">Equities: 15%</span>
+                <span class="weight-chip">ETFs: 20%</span>
+                <span class="weight-chip">MFs: 15%</span>
+                <span class="weight-chip">Gold: 20%</span>
+                <span class="weight-chip">Cash: 30%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rebalance Parameters & Mode Controls -->
+        <div class="glass-panel config-panel">
+          <h2 class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            Execution Parameters
+          </h2>
+
+          <div class="mode-toggle-block">
+            <label class="param-label">Rebalancing Mode</label>
+            <div class="mode-toggle-group">
+              <button class="mode-btn active" id="btn-mode-smart">
+                <strong>Smart Cash Deployment (Tax-Free)</strong>
+                <span>Deploys dry powder / arbitrage cash only. Zero capital gains tax.</span>
+              </button>
+              <button class="mode-btn" id="btn-mode-full">
+                <strong>Full Strategic Realignment</strong>
+                <span>Harvests overweight positions & reallocates across portfolio.</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="param-control-row">
+            <div class="param-item">
+              <div class="param-label-row">
+                <label for="slider-fresh-capital" class="param-label">Fresh Capital Infusion</label>
+                <span class="param-val-badge" id="lbl-fresh-capital">₹0</span>
+              </div>
+              <input type="range" id="slider-fresh-capital" min="0" max="2500000" step="25000" value="0" class="custom-range">
+              <div class="range-ticks">
+                <span>₹0</span>
+                <span>₹5L</span>
+                <span>₹10L</span>
+                <span>₹25L</span>
+              </div>
+            </div>
+
+            <div class="param-item">
+              <div class="param-label-row">
+                <label for="slider-tolerance" class="param-label">Drift Tolerance Band</label>
+                <span class="param-val-badge" id="lbl-tolerance">±3.0%</span>
+              </div>
+              <input type="range" id="slider-tolerance" min="1.0" max="8.0" step="0.5" value="3.0" class="custom-range">
+              <div class="range-ticks">
+                <span>±1%</span>
+                <span>±3% (Optimal)</span>
+                <span>±5%</span>
+                <span>±8%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rebalance-trigger-row">
+            <button class="btn btn-primary btn-block btn-lg" id="btn-calculate-rebalance">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+              </svg>
+              <span>Run Rebalance Simulation & Generate Orders</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drift Analysis Matrix -->
+      <div class="glass-panel mb-4">
+        <h2 class="panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Asset Class Allocation & Drift Matrix
+        </h2>
+        <div class="table-responsive">
+          <table class="drift-table">
+            <thead>
+              <tr>
+                <th>Asset Class</th>
+                <th class="text-right">Current Value</th>
+                <th class="text-right">Current Weight</th>
+                <th class="text-right">Target Weight</th>
+                <th class="text-right">Target Value</th>
+                <th class="text-right">Allocation Drift</th>
+                <th class="text-center">Drift Status</th>
+                <th class="text-center">Strategic Action</th>
+              </tr>
+            </thead>
+            <tbody id="drift-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Actionable Execution Sheet -->
+      <div class="glass-panel">
+        <div class="orders-header-row">
+          <div>
+            <h2 class="panel-title mb-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              Execution Order Sheet
+            </h2>
+            <p class="section-subtitle" id="orders-summary-subtitle">Calculated trade execution plan based on selected allocation strategy.</p>
+          </div>
+
+          <div class="orders-action-buttons">
+            <button class="btn btn-secondary btn-sm" id="btn-copy-orders">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy Zerodha Basket JSON</span>
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-export-orders-csv">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Export Trade Sheet (.CSV)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Orders Summary Cards -->
+        <div class="orders-kpis-grid" id="orders-kpis-container">
+          <!-- Rendered via JS -->
+        </div>
+
+        <div class="table-responsive">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Instrument</th>
+                <th>Asset Class</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Order Qty</th>
+                <th class="text-right">Order Amount</th>
+                <th class="text-center">Priority</th>
+                <th class="text-right">Target 1</th>
+                <th class="text-right">Stop Loss</th>
+                <th class="text-center">Quant Score</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 3: Allocation Charts & Analytics -->
+    <section class="view-content" id="view-allocation">
+      <div class="charts-grid">
+        <div class="glass-panel chart-card">
+          <h2 class="panel-title">Asset Class Allocation (Current vs Target)</h2>
+          <div class="chart-wrapper">
+            <canvas id="allocation-donut-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-panel chart-card">
+          <h2 class="panel-title">Portfolio Allocation Drift (% Over/Under)</h2>
+          <div class="chart-wrapper">
+            <canvas id="drift-bar-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Deep-Dive Asset Drawer / Modal -->
+  <div class="modal-overlay" id="deepdive-modal" aria-hidden="true">
+    <div class="modal-container glass-panel modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <h2 class="modal-title" id="modal-asset-name">TITAN</h2>
+          <span class="badge badge-info" id="modal-asset-category">Direct Equities</span>
+          <span class="badge badge-success" id="modal-asset-rec">STRONG BUY</span>
+        </div>
+        <button class="modal-close-btn" id="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body" id="modal-deepdive-content">
+        <!-- Live Price & Target Ribbon -->
+        <div class="deepdive-price-ribbon">
+          <div class="price-box">
+            <span class="ribbon-label">LIVE MARKET PRICE</span>
+            <span class="ribbon-val" id="modal-price">₹4,873.00</span>
+          </div>
+          <div class="price-box">
+            <span class="ribbon-label">CONVICTION SCORE</span>
+            <span class="ribbon-val text-gold" id="modal-score">78 / 100</span>
+          </div>
+          <div class="price-box">
+            <span class="ribbon-label">SWING TARGET 1</span>
+            <span class="ribbon-val text-success" id="modal-t1">₹5,186.70</span>
+          </div>
+          <div class="price-box">
+            <span class="ribbon-label">ANALYST TARGET 2</span>
+            <span class="ribbon-val text-success" id="modal-t2">₹5,421.50</span>
+          </div>
+          <div class="price-box">
+            <span class="ribbon-label">STOP LOSS (SUPPORT)</span>
+            <span class="ribbon-val text-danger" id="modal-sl">₹4,758.00</span>
+          </div>
+        </div>
+
+        <!-- 60-Day Price History Chart -->
+        <div class="chart-container-box mb-4">
+          <h3 class="box-title">60-Day Price Movement & Technical Support/Resistance</h3>
+          <div class="chart-wrapper-modal">
+            <canvas id="deepdive-history-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Technical & Fundamental Metrics Grid -->
+        <div class="deepdive-metrics-grid">
+          <!-- Technical Indicators Card -->
+          <div class="metrics-subcard">
+            <h3 class="box-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              Technical Momentum & Trend
+            </h3>
+            <div class="metric-row">
+              <span>RSI (14-Day):</span>
+              <strong id="m-rsi">20.4 (Oversold)</strong>
+            </div>
+            <div class="metric-row">
+              <span>SMA (20-Day):</span>
+              <strong id="m-sma20">₹5,039.29</strong>
+            </div>
+            <div class="metric-row">
+              <span>SMA (50-Day):</span>
+              <strong id="m-sma50">₹4,918.72</strong>
+            </div>
+            <div class="metric-row">
+              <span>SMA (200-Day):</span>
+              <strong id="m-sma200">₹4,363.93</strong>
+            </div>
+            <div class="metric-row">
+              <span>52-Week Range:</span>
+              <strong id="m-52w">₹3,303 - ₹5,187</strong>
+            </div>
+            <div class="metric-row">
+              <span>Trend Structure:</span>
+              <strong id="m-trend" class="text-success">Bullish Consolidation</strong>
+            </div>
+          </div>
+
+          <!-- Fundamental Valuation Card -->
+          <div class="metrics-subcard">
+            <h3 class="box-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+              Fundamental Valuation Multiples
+            </h3>
+            <div class="metric-row">
+              <span>Trailing P/E:</span>
+              <strong id="m-pe">77.0</strong>
+            </div>
+            <div class="metric-row">
+              <span>Forward P/E:</span>
+              <strong id="m-fwd-pe">54.7</strong>
+            </div>
+            <div class="metric-row">
+              <span>Market Capitalization:</span>
+              <strong id="m-mcap">₹4.31T</strong>
+            </div>
+            <div class="metric-row">
+              <span>Profit Margin %:</span>
+              <strong id="m-margin">6.2%</strong>
+            </div>
+            <div class="metric-row">
+              <span>Debt / Equity:</span>
+              <strong id="m-debt">1.95</strong>
+            </div>
+            <div class="metric-row">
+              <span>Analyst Coverage:</span>
+              <strong id="m-analysts">36 Analysts (Consensus Buy)</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-rationale-box mt-3" id="modal-rationale-box">
+          <div class="rationale-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span>Institutional Engine Rationale</span>
+          </div>
+          <p id="modal-rationale-text">Oversold RSI pull-back into strong 200 DMA support creates an asymmetrical risk-reward setup with institutional consensus upside of +11.3%.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Daily CSV Modal -->
+  <div class="modal-overlay" id="upload-modal" aria-hidden="true">
+    <div class="modal-container glass-panel modal-md">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <h2 class="modal-title">Upload Daily Broker CSV</h2>
+          <span class="badge badge-info">Multi-Broker Universal Parser</span>
+        </div>
+        <button class="modal-close-btn" id="upload-modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="text-muted mb-3">Upload your daily holdings file from any major Indian brokerage. The engine auto-detects columns, prices, and instruments.</p>
+        
+        <div class="broker-chips-row mb-3">
+          <span class="broker-pill">Zerodha Kite</span>
+          <span class="broker-pill">Groww</span>
+          <span class="broker-pill">Angel One</span>
+          <span class="broker-pill">Upstox</span>
+          <span class="broker-pill">ICICI Direct</span>
+          <span class="broker-pill">AMFI MFs</span>
+        </div>
+
+        <div class="upload-dropzone" id="csv-dropzone">
+          <input type="file" id="csv-file-input" accept=".csv" class="file-input-hidden">
+          <div class="dropzone-inner">
+            <svg class="dropzone-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p class="dropzone-text"><strong>Click to select file</strong> or drag & drop CSV here</p>
+            <span class="dropzone-hint">Supports .csv files with standard broker columns</span>
+          </div>
+        </div>
+
+        <div class="or-divider"><span>OR</span></div>
+
+        <div class="load-sample-row">
+          <button class="btn btn-secondary btn-block" id="btn-load-sample">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+              <path d="M21 3v5h-5"></path>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+              <path d="M3 21v-5h5"></path>
+            </svg>
+            <span>Reset & Synchronize Sample Portfolio (₹1.06+ Cr)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Main JavaScript Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
